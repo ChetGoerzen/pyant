@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Aug 14 11:58:28 2019
-
-@author: pgcseismolab
-"""
-
 from datetime import datetime
 from antelope_load import Load
 from merge_dbs import merge_dbs
