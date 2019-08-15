@@ -1,0 +1,4 @@
+# Descriptor file
+ schema css3.0
+ dbpath	.{db}:../dbmaster/{nbc}:
+ dblocs local
