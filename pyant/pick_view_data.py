@@ -1,22 +1,18 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jul 29 13:21:12 2019
-
-@author: pgcseismolab
-"""
-    
-'''
-Reads in data from the pick-vew program.
-'''
-
 import os 
 import pandas as pd
 from datetime import datetime
 
-#%%
-
 class PickViewData:
+    
+    '''
+    A class to load in data from the pick-view data into pandas DataFrames.
+    Requires the event filenames to end with '-out.csv'. The origin files must
+    contain 'origin' after the first underscore. The arrival files must contain
+    'arrival' after the first underscore. Some examples are
+    '2019-06-01-1564418738.1480892-out.csv', 
+    'snap_origin_2019-06-01--2019-06-14.csv', and
+    'snap_arrival_2019-06-01--2019-06-14.csv'
+    '''
     
     def __init__(self, path):
         
@@ -473,6 +469,3 @@ def write_antelope_db_from_pick_view(db_path, data_path, category_of_picks='revi
     arrival_file.close()
     assoc_file.close()
     event_file.close()
-
-
-#%%

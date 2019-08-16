@@ -32,7 +32,6 @@ def str_to_epoch(my_datetime):
 
 def write_antelope_db(db_path, origin, arrival, site, algorithm, auth_name):
     
-    
     '''
     Creates an Antelope database from csv data so that Antelope utilities
     can be applied to the data. The assoc file contains the required
