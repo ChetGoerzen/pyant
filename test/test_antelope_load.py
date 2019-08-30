@@ -8,17 +8,21 @@ Created on Wed Jul 17 17:11:31 2019
 
 ##  python -m pytest test/
 
-from antelope_load import Load
-from antelope_load import mag_correction
 import pandas as pd
 from pandas import Timestamp
 from geopy.distance import geodesic
 import numpy as np
 import numpy.testing as npt
+import os
+
+from pyant import Load
+from pyant import mag_correction
+
 
 #%%
 
-path = '/Users/pgcseismolab/Documents/chet/dbs/201901-201905/' 
+path = 'data/201907/' 
+print(os.getcwd())
 test = Load(path)
 
 clean = test.clean()

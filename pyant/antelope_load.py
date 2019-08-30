@@ -217,7 +217,7 @@ class Load:
                          delim_whitespace=True, usecols=[0,1,3,6,8,12,13], 
                          names=['sta','chan','filter','time','amp','arid','auth'])
         
-        df['date'] = pd.to_datetime(df['time'], unit='s')
+        df['wfmeas_date'] = pd.to_datetime(df['time'], unit='s')
         
         return df
     
@@ -339,8 +339,12 @@ class Load:
                cleaned origin_arrival_assoc table.
         '''
         
+#        event = self.event()
         origin_origerr = self.origin_origerr()
         origin_arrival_assoc = self.origin_arrival_assoc()
+        stamag_wfmeas_origin_origerr = self.stamag_wfmeas_origin_origerr()
+#        stamag_wfmeas = self.stamag_wfmeas()
+        site = self.site()
         
         qc = [(origin_origerr.lat <= 56.3) & (origin_origerr.lat >= 55.5)
             & (origin_origerr.lon <= -119.8) & (origin_origerr.lon >= -121.2)
@@ -352,8 +356,13 @@ class Load:
         origin_orids  = clean_origin_origerr.orid
         clean_origin_arrival_assoc = origin_arrival_assoc[arrival_orids.isin(origin_orids)]
         clean_origin_arrival_assoc.reset_index(inplace=True, drop=True)
+        stamag_wfmeas_origin_origerr["cml"] = stamag_wfmeas_origin_origerr.apply(lambda event: mag_correction(event=event, site=site), axis=1)
         
-        clean = {'clean_origin_origerr':clean_origin_origerr, 'clean_origin_arrival_assoc':clean_origin_arrival_assoc}
+        clean_origin_origerr["cml"] = clean_origin_origerr.apply(lambda oo: calculate_ev_mag(oo=oo, swoo=stamag_wfmeas_origin_origerr), axis=1) 
+        
+        clean = {'clean_origin_origerr':clean_origin_origerr,
+                 'clean_origin_arrival_assoc':clean_origin_arrival_assoc,
+                 'stamag_wfmeas_origin_origerr':stamag_wfmeas_origin_origerr}
         
         return clean
     
@@ -373,17 +382,28 @@ class Load:
             The merged stamag and wfmeas DataFrames.
         '''
         
+#        site = self.site()
         stamag = self.stamag()
         wfmeas = self.wfmeas()
         
         stamag = stamag[['arid','orid','mag']]
         stamag.arid = stamag.arid.astype(int)
-        wfmeas = wfmeas[['arid','sta','chan','filter','amp','date','auth']]
+        wfmeas = wfmeas[['arid','sta','chan','filter','amp','wfmeas_date','auth']]
         wfmeas.arid = wfmeas.arid.astype(int)
         
         stamag_wfmeas = pd.merge(stamag,wfmeas,how='outer',on='arid')
+#        stamag_wfmeas["cml"] = stamag_wfmeas.apply(lambda event: mag_correction(event=event, site=site), axis=1)
            
         return stamag_wfmeas
+    
+    def stamag_wfmeas_origin_origerr(self):
+        
+        stamag_wfmeas = self.stamag_wfmeas()
+        origin_origerr = self.origin_origerr()
+        
+        stamag_wfmeas_origin_origerr = pd.merge(stamag_wfmeas, origin_origerr, how='inner', on='orid')
+        
+        return stamag_wfmeas_origin_origerr
             
     def event(self):
         
@@ -400,7 +420,7 @@ class Load:
         -------
         
         event : pd.DataFrame()
-            All the statmagwfmeas data for each event as well as corrected magnitude.
+            All the stamagwfmeas data for each event as well as corrected magnitude.
         '''
         
         stamag_wfmeas = self.stamag_wfmeas()
@@ -452,6 +472,16 @@ def mag_correction(event, site):
         output_ml = -999.99
     
     return output_ml
+
+def calculate_ev_mag(oo, swoo):
+    
+        orid = oo.orid
+
+        tmp = swoo[(swoo.orid == orid) & (swoo.cml > -999.99)]
+        cmags = tmp.cml
+        median_mag = np.median(cmags)
+        
+        return median_mag
 
 def make_plots():
     '''
